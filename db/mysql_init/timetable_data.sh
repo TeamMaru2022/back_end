@@ -1,0 +1,1 @@
+mysql -uroot -pecc --local-infile=1 earlGrey -e "LOAD DATA LOCAL INFILE '/docker-entrypoint-initdb.d/timetable.csv' INTO TABLE timetables FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n'"
