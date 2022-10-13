@@ -1,0 +1,3 @@
+curl -X POST http://localhost:3000/user/reg \
+-H 'content-type: application/json' \
+-d '{ "mail": "example3@gmail.com", "pass": "password", "age": 99 }'

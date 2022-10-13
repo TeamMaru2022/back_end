@@ -1,0 +1,49 @@
+予約（先生）　ー＞　承認（教務課）
+
+〜予約がかぶれば日付を比較して同じ条件の教室を提案?
+〜通常授業テーブルと予約テーブル参照->その日付のs_timeとe_timeを小さい順にソート（連続の通常授業（休み時間、昼休み挟む）なら予約できないようにする
+（）
+〜上の処理で余った時間帯を連想配列で返す？
+{
+    "token" : "string",
+    "room_info": {
+
+        "1203": [
+            {"s_time":"time", "e_time": "time"},
+            {"s_time":"time", "e_time": "time"}
+        ],
+        "1204":[
+            {"s_time":"time", "e_time":"time"},
+            {"s_time":"time", "e_time":"time"}
+        ]
+    }
+}
+
+{
+    "token" : "string",
+    "room_info": {
+
+        "1203":[
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"1限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"2限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"3限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"4限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"5限目"},
+        ],
+        "1204":[
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"1限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"2限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"3限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"4限目"},
+            {"class":"IE4A", "teacher":"内山先生", "subject":"　システム開発演習", "timeNo":"5限目"},
+        ],
+
+    }
+}
+
+
+
+
+
+
+一定の時間ごとにセンサから教室状況を受取、共有する
