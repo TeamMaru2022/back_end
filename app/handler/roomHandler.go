@@ -36,8 +36,7 @@ func GetRoomInfo(c *gin.Context) {
 
 	today := time.Now()
 	dayOfWeek := today.Weekday().String() // 曜日の取得
-	fmt.Println(dayOfWeek[0:3]) //火曜なら "Tue" と表示される
-	dayOfWeek = "Tue"
+	dayOfWeek = dayOfWeek[0:3]	//火曜なら "Tue"
 
 	rooms := []model.Room{}
 	db.Order("room_no").
@@ -56,13 +55,6 @@ func GetRoomInfo(c *gin.Context) {
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "通常授業の教室使用情報、取得失敗"})
 		return
-	}
-
-	//log
-	fmt.Println("結合後のテーブル")
-	for _, v := range roomResults {
-		fmt.Println("-------------------------------------------------------------------")
-		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.TimeNo, v.SubjectName)
 	}
 
 	detectingResult := db.Order("room_no").Table("rooms").
@@ -103,11 +95,12 @@ func createDetectionJson(detectingInfo []model.RoomScan) interface{} {
 	detections := make(map[string]bool)
 
 	for _, v := range detectingInfo {
-		fmt.Printf("%v,%v\n", v.RoomNo, v.IsDetected)
 		detections[v.RoomNo] = v.IsDetected
 	}
-	fmt.Println("センサー情報")
+	fmt.Println("\n\n-----------センサー情報-----------")
 	fmt.Println(detections)
+	fmt.Println()
+	fmt.Println()
 	return detections
 }
 
@@ -118,7 +111,6 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 	roomInfo := []Class{}
 
 	for i, v := range roomInfos {
-		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.TimeNo, v.SubjectName)
 		if i == 0 {
 			//ループの最初は変数currentRoomに代入
 			currentRoomNo = v.RoomNo
@@ -141,17 +133,9 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 	}
 	//最後だけfor文が回らないので
 	eachRoomInfos[currentRoomNo] = roomInfo
-	fmt.Println("------------------出来上がったJson---------------------")
+	fmt.Println("\n\n------------------出来上がったJson---------------------")
 	fmt.Println(eachRoomInfos)
 
 	return eachRoomInfos
 
 }
-
-// func createRoomsSlice(rooms []model.Room) []string {
-// 	roomSlice := []string{}
-// 	for _, v := range rooms {
-// 		roomSlice = append(roomSlice, v.RoomNo)
-// 	}
-// 	return roomSlice
-// }
