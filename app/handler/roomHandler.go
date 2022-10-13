@@ -3,7 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	// "reflect"
+	"reflect"
 	"time"
 
 	//"github.com/Kantaro0829/go-gin-test/auth"
@@ -20,7 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// var a = temp()
+var a = temp()
 
 func GetRoomInfo(c *gin.Context) {
 
@@ -29,15 +29,18 @@ func GetRoomInfo(c *gin.Context) {
 	roomNum, _ := strconv.ParseInt(roomNumStr, 10, 16)
 	//roomNumberの上二桁だけ切り取り
 	buildingNumAndFloor := roomNum / 100
+	fmt.Println(buildingNumAndFloor)
 	buildingAndFloor := strconv.FormatInt(buildingNumAndFloor, 10)
 	buildingAndFloor = buildingAndFloor + "%"
 
 	//db := infra.DBInit()
 
 	today := time.Now()
+	fmt.Println(today)
 	dayOfWeek := today.Weekday().String() // 曜日の取得
-	fmt.Println(dayOfWeek[0:3]) //火曜なら "Tue" と表示される
-	dayOfWeek = "Tue"
+	fmt.Println(dayOfWeek)
+	fmt.Println(reflect.TypeOf(dayOfWeek))
+	fmt.Println(dayOfWeek[0:3])
 
 	rooms := []model.Room{}
 	db.Order("room_no").
@@ -45,11 +48,15 @@ func GetRoomInfo(c *gin.Context) {
 		Where("room_no LIKE ?", buildingAndFloor).
 		Find(&rooms)
 
+	roomSlice := createRoomsSlice(rooms)
+	fmt.Println(roomSlice)
+
 	roomResults := []model.RoomResult{}
 	roomScan := []model.RoomScan{}
 
 	result := db.Order("timetables.room_no, timetables.time_no").Table("timetables").
-		Select("timetables.room_no, timetables.time_no, timetables.subject_name").
+		Select("timetables.room_no, timetables.time_no, teachers.teacher_name, timetables.subject_name").
+		Joins("left join teachers on timetables.teacher_no = teachers.id").
 		Where("timetables.room_no LIKE ? AND timetables.youbi = ?", buildingAndFloor, dayOfWeek).
 		Scan(&roomResults)
 
@@ -62,7 +69,7 @@ func GetRoomInfo(c *gin.Context) {
 	fmt.Println("結合後のテーブル")
 	for _, v := range roomResults {
 		fmt.Println("-------------------------------------------------------------------")
-		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.TimeNo, v.SubjectName)
+		fmt.Printf("%v, %v, %v, %v\n", v.RoomNo, v.TimeNo, v.TeacherName, v.SubjectName)
 	}
 
 	detectingResult := db.Order("room_no").Table("rooms").
@@ -84,6 +91,7 @@ func GetRoomInfo(c *gin.Context) {
 
 type Class struct {
 	TimeNo      string
+	TeacherName string
 	SubjectName string
 }
 
@@ -118,7 +126,7 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 	roomInfo := []Class{}
 
 	for i, v := range roomInfos {
-		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.TimeNo, v.SubjectName)
+		fmt.Printf("%v, %v, %v, %v\n", v.RoomNo, v.TimeNo, v.TeacherName, v.SubjectName)
 		if i == 0 {
 			//ループの最初は変数currentRoomに代入
 			currentRoomNo = v.RoomNo
@@ -135,6 +143,7 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 		//各教室の1〜5限目の情報を格納する配列に値を入れる
 		roomInfo = append(roomInfo, Class{
 			TimeNo:      v.TimeNo,
+			TeacherName: v.TeacherName,
 			SubjectName: v.SubjectName,
 		})
 
@@ -148,10 +157,10 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 
 }
 
-// func createRoomsSlice(rooms []model.Room) []string {
-// 	roomSlice := []string{}
-// 	for _, v := range rooms {
-// 		roomSlice = append(roomSlice, v.RoomNo)
-// 	}
-// 	return roomSlice
-// }
+func createRoomsSlice(rooms []model.Room) []string {
+	roomSlice := []string{}
+	for _, v := range rooms {
+		roomSlice = append(roomSlice, v.RoomNo)
+	}
+	return roomSlice
+}

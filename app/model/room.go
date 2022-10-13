@@ -7,8 +7,7 @@ import (
 type Room struct {
 	gorm.Model
 	RoomNo     string `gorm:"primaryKey"`
-	Outlet     string
-	Lan				 bool
+	Memo       string
 	IsDetected bool
 }
 
