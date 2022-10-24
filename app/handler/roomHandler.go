@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+
 	// "reflect"
 	"time"
 
@@ -36,13 +37,24 @@ func GetRoomInfo(c *gin.Context) {
 
 	today := time.Now()
 	dayOfWeek := today.Weekday().String() // 曜日の取得
-	dayOfWeek = dayOfWeek[0:3]	//火曜なら "Tue"
+	dayOfWeek = dayOfWeek[0:3]            //火曜なら "Tue"
 
-	rooms := []model.Room{}
-	db.Order("room_no").
-		Select("room_no").
-		Where("room_no LIKE ?", buildingAndFloor).
-		Find(&rooms)
+	// rooms := []model.Room{}
+	// db.Order("room_no").
+	// 	Select("room_no").
+	// 	Where("room_no LIKE ?", buildingAndFloor).
+	// 	Find(&rooms)
+
+	timer := []model.Timer{}
+	time := db.Order("time_no").
+		Select("time_no, s_time, e_time").
+		Table("timers").
+		Scan(&timer)
+
+	if time.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "時間テーブル、取得失敗"})
+		return
+	}
 
 	roomResults := []model.RoomResult{}
 	roomScan := []model.RoomScan{}
@@ -67,10 +79,11 @@ func GetRoomInfo(c *gin.Context) {
 		return
 	}
 
+	timerInfo := createTimerInfoJson(timer)
 	roomInfo := createRoomInfoJson(roomResults)
 	reservationInfo := createReservationJson()
 	detectingInfo := createDetectionJson(roomScan)
-	response := AllInfo{NormalInfo: roomInfo, ReservationInfo: reservationInfo, DetectingInfo: detectingInfo}
+	response := AllInfo{TimerInfo: timerInfo, NormalInfo: roomInfo, ReservationInfo: reservationInfo, DetectingInfo: detectingInfo}
 	c.JSON(http.StatusOK, response)
 }
 
@@ -79,7 +92,14 @@ type Class struct {
 	SubjectName string
 }
 
+type Timer struct {
+	TimeNo int
+	STIME  string
+	ETIME  string
+}
+
 type AllInfo struct {
+	TimerInfo       int
 	NormalInfo      map[string][]Class
 	ReservationInfo map[string]string
 	DetectingInfo   interface{}
@@ -138,4 +158,21 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 
 	return eachRoomInfos
 
+}
+
+func createTimerInfoJson(timerInfos []model.Timer) int {
+	// 今何限目かを返す関数
+
+	// 現在時刻 : string
+	const TimeFormat = "15:04:05"
+	nowTime := time.Now().Format(TimeFormat)
+
+	for _, v := range timerInfos {
+
+		if v.STime < nowTime && nowTime < v.ETime {
+			fmt.Println(v.TimeNo)
+			return v.TimeNo
+		}
+	}
+	return 0
 }
