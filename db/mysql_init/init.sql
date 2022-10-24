@@ -57,10 +57,69 @@ CREATE TABLE rooms(
 	primary key(room_no)
 );
 
--- data
+-- data: rooms 1号館
 INSERT INTO rooms(room_no, outlet, lan, is_detected)
   VALUES("1201", 'down', true, false),
-				("2302", 'up', true, false);
+				("1202", 'down', true, false),
+				("1203", 'down', true, false),
+				("1204", 'down', true, false),
+				("1205", 'down', true, false),
+				("1206", 'down', true, false),
+				("1301", 'down', true, false),
+				("1302", 'down', true, false),
+				("1303", 'down', true, false),
+				("1304", 'down', true, false),
+				("1305", 'down', true, false),
+				("1306", 'down', true, false),
+				("1307", 'down', true, false),
+				("1308", 'down', true, false),
+				("1309", 'down', true, false),
+				("1401", 'down', true, false),
+				("1402", 'down', true, false),
+				("1403", 'down', true, false),
+				("1404", 'down', true, false),
+				("1405", 'down', true, false);
+
+-- data: rooms 2号館
+INSERT INTO rooms(room_no, outlet, lan, is_detected)
+  VALUES("2201", 'up', true, false),
+				("2202", 'up', true, false),
+				("2203", 'up', true, false),
+				("2301", 'up', true, false),
+				("2302", 'up', true, false),
+				("2303", 'up', true, false),
+				("2401", 'up', true, false),
+				("2402", 'up', true, false),
+				("2403", 'up', true, false),
+				("2404", 'up', true, false),
+				("2405", 'up', true, false),
+				("2501", 'up', true, false),
+				("2502", 'up', true, false),
+				("2503", 'up', true, false),
+				("2504", 'up', true, false),
+				("2505", 'up', true, false),
+				("2601", 'up', true, false),
+				("2602", 'up', true, false),
+				("2603", 'up', true, false);
+
+-- data: rooms 3号館
+INSERT INTO rooms(room_no, outlet, lan, is_detected)
+  VALUES("3201", 'down', true, false),
+				("3202", 'down', true, false),
+				("3203", 'down', true, false),
+				("3301", 'down', true, false),
+				("3302", 'down', true, false),
+				("3303", 'down', true, false),
+				("3401", 'down', true, false),
+				("3402", 'down', true, false),
+				("3403", 'down', true, false),
+				("3501", 'up', true, false),
+				("3502", 'up', true, false),
+				("3601", 'up', true, false),
+				("3602", 'up', true, false),
+				("3701", 'up', true, false),
+				("3702", 'up', true, false),
+				("3703", 'up', true, false);
 
 -- 時間割り
 CREATE TABLE timetables(

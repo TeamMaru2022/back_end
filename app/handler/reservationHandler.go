@@ -103,7 +103,7 @@ func insertReseInfo(c *gin.Context) {
 	reseI := []model.Reservation{}
 
 	// status = 1:承認済み、時間帯・教室番号がブッキングしてない
-	// rese := data.Select("room_no, teacher_no, rese_date, s_tiem, e_time").
+	// rese := data.Select("room_no, teacher_no, rese_date, s_time, e_time").
 	// 	Where("state_no = 1 AND rese_date = ? AND room_no = ?", reseDate, roomNo).
 	// 	Scan(&reseI)
 

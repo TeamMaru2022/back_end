@@ -20,7 +20,7 @@ type User struct {
 
 type Timer struct {
 	gorm.Model
-	TimeNo string `gorm:"primaryKey"`
+	TimeNo int    `gorm:"primaryKey"`
 	STime  string `gorm:"not null"`
 	ETime  string `gorm:"not null"`
 }

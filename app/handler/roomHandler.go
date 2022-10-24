@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"net/http"
+
 	// "reflect"
 	"time"
 
@@ -36,14 +37,24 @@ func GetRoomInfo(c *gin.Context) {
 
 	today := time.Now()
 	dayOfWeek := today.Weekday().String() // 曜日の取得
-	fmt.Println(dayOfWeek[0:3]) //火曜なら "Tue" と表示される
-	dayOfWeek = "Tue"
+	dayOfWeek = dayOfWeek[0:3]            //火曜なら "Tue"
 
-	rooms := []model.Room{}
-	db.Order("room_no").
-		Select("room_no").
-		Where("room_no LIKE ?", buildingAndFloor).
-		Find(&rooms)
+	// rooms := []model.Room{}
+	// db.Order("room_no").
+	// 	Select("room_no").
+	// 	Where("room_no LIKE ?", buildingAndFloor).
+	// 	Find(&rooms)
+
+	timer := []model.Timer{}
+	time := db.Order("time_no").
+		Select("time_no, s_time, e_time").
+		Table("timers").
+		Scan(&timer)
+
+	if time.Error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "時間テーブル、取得失敗"})
+		return
+	}
 
 	roomResults := []model.RoomResult{}
 	roomScan := []model.RoomScan{}
@@ -58,13 +69,6 @@ func GetRoomInfo(c *gin.Context) {
 		return
 	}
 
-	//log
-	fmt.Println("結合後のテーブル")
-	for _, v := range roomResults {
-		fmt.Println("-------------------------------------------------------------------")
-		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.TimeNo, v.SubjectName)
-	}
-
 	detectingResult := db.Order("room_no").Table("rooms").
 		Select("room_no, is_detected").
 		Where("room_no LIKE ?", buildingAndFloor).
@@ -75,10 +79,11 @@ func GetRoomInfo(c *gin.Context) {
 		return
 	}
 
+	timerInfo := createTimerInfoJson(timer)
 	roomInfo := createRoomInfoJson(roomResults)
 	reservationInfo := createReservationJson()
 	detectingInfo := createDetectionJson(roomScan)
-	response := AllInfo{NormalInfo: roomInfo, ReservationInfo: reservationInfo, DetectingInfo: detectingInfo}
+	response := AllInfo{TimerInfo: timerInfo, NormalInfo: roomInfo, ReservationInfo: reservationInfo, DetectingInfo: detectingInfo}
 	c.JSON(http.StatusOK, response)
 }
 
@@ -87,7 +92,14 @@ type Class struct {
 	SubjectName string
 }
 
+type Timer struct {
+	TimeNo int
+	STIME  string
+	ETIME  string
+}
+
 type AllInfo struct {
+	TimerInfo       int
 	NormalInfo      map[string][]Class
 	ReservationInfo map[string]string
 	DetectingInfo   interface{}
@@ -103,11 +115,12 @@ func createDetectionJson(detectingInfo []model.RoomScan) interface{} {
 	detections := make(map[string]bool)
 
 	for _, v := range detectingInfo {
-		fmt.Printf("%v,%v\n", v.RoomNo, v.IsDetected)
 		detections[v.RoomNo] = v.IsDetected
 	}
-	fmt.Println("センサー情報")
+	fmt.Println("\n\n-----------センサー情報-----------")
 	fmt.Println(detections)
+	fmt.Println()
+	fmt.Println()
 	return detections
 }
 
@@ -118,7 +131,6 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 	roomInfo := []Class{}
 
 	for i, v := range roomInfos {
-		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.TimeNo, v.SubjectName)
 		if i == 0 {
 			//ループの最初は変数currentRoomに代入
 			currentRoomNo = v.RoomNo
@@ -141,17 +153,26 @@ func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 	}
 	//最後だけfor文が回らないので
 	eachRoomInfos[currentRoomNo] = roomInfo
-	fmt.Println("------------------出来上がったJson---------------------")
+	fmt.Println("\n\n------------------出来上がったJson---------------------")
 	fmt.Println(eachRoomInfos)
 
 	return eachRoomInfos
 
 }
 
-// func createRoomsSlice(rooms []model.Room) []string {
-// 	roomSlice := []string{}
-// 	for _, v := range rooms {
-// 		roomSlice = append(roomSlice, v.RoomNo)
-// 	}
-// 	return roomSlice
-// }
+func createTimerInfoJson(timerInfos []model.Timer) int {
+	// 今何限目かを返す関数
+
+	// 現在時刻 : string
+	const TimeFormat = "15:04:05"
+	nowTime := time.Now().Format(TimeFormat)
+
+	for _, v := range timerInfos {
+
+		if v.STime < nowTime && nowTime < v.ETime {
+			fmt.Println(v.TimeNo)
+			return v.TimeNo
+		}
+	}
+	return 0
+}
