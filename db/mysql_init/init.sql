@@ -1,7 +1,7 @@
 set global local_infile = 1;
 
-CREATE DATABASE IF NOT EXISTS earlGrey;
-use earlGrey;
+CREATE DATABASE IF NOT EXISTS maru;
+use maru;
 
 -- 何限目の情報を格納している
 CREATE TABLE timers(
