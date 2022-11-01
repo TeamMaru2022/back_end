@@ -121,6 +121,19 @@ INSERT INTO rooms(room_no, outlet, lan, is_detected)
 				("3702", 'up', true, false),
 				("3703", 'up', true, false);
 
+-- data: rooms 4号館
+INSERT INTO rooms(room_no, outlet, lan, is_detected)
+  VALUES("4201", 'down', true, false),
+				("4202", 'down', true, false),
+				("4203", 'down', true, false),
+				("4301", 'down', true, false),
+				("4302", 'down', true, false),
+				("4401", 'down', true, false),
+				("4402", 'down', true, false),
+				("4403", 'down', true, false),
+				("4501", 'down', true, false),
+				("4502", 'down', true, false);
+
 -- 時間割り
 CREATE TABLE timetables(
 	class_no int auto_increment,
@@ -128,9 +141,6 @@ CREATE TABLE timetables(
 	youbi char(3) not null,
 	time_no int not null,
 	room_no varchar(4) not null,
-	updated_at datetime,
-	created_at datetime,
-	deleted_at datetime,
 
 	primary key(class_no),
 	foreign key(room_no) references rooms(room_no) ON DELETE CASCADE ON UPDATE CASCADE,
