@@ -45,6 +45,11 @@ func main() {
 		teacher.POST("reg", handler.TeacherReg)
 		teacher.POST("login", handler.TeacherLogin)
 	}
+
+	csv := router.Group("/timetable")
+	{
+		csv.POST("/csv", handler.ChangeCsv)
+	}
 	router.Run(":3000")
 
 }
