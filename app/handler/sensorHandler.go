@@ -14,9 +14,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func temp() int {
-	return 1
-}
+// func temp() int {
+// 	return 1
+// }
 
 //db := infra.DBInit()
 func UpdateDetectingInfo(c *gin.Context) {
@@ -75,6 +75,4 @@ func UpdateDetectingInfo(c *gin.Context) {
 	}
 	tx.Commit()
 	c.JSON(http.StatusOK, gin.H{"message": "登録完了"})
-	return
-
 }

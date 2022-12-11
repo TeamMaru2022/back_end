@@ -14,12 +14,8 @@ import (
 )
 
 var dsn = "root:ecc@tcp(db:3306)/maru?charset=utf8mb4&parseTime=True&loc=Local"
-var db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+var db, _ = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
-// db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-// if err != nil {
-// 	panic(err.Error)
-// }
 
 func Getting(c *gin.Context) {
 	//db := infra.DBInit()

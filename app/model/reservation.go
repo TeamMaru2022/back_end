@@ -1,7 +1,6 @@
 package model
 
 type Reservation struct {
-	ReseNo			int
 	TeacherNo		int
 	RoomNo			string
 	ReseDate 		string
@@ -9,6 +8,4 @@ type Reservation struct {
 	ETime				string
 	Purpose 		string
 	RequestDate string
-	StateNo 		int
-
 }

@@ -164,7 +164,7 @@ CREATE TABLE reservations(
 	e_time time not null,
 	purpose varchar(150) not null,
 	request_date date not null,
-	request_state varchar(5) not null,
+	request_state varchar(5) not null DEFAULT 'wait',
 	updated_at datetime,
 	created_at datetime,
 	deleted_at datetime,
