@@ -21,29 +21,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// var a = temp()
-
 func GetRoomInfo(c *gin.Context) {
 
 	roomNumStr := c.Param("roomNo")
-	//fmt.Println(roomNumStr)
 	roomNum, _ := strconv.ParseInt(roomNumStr, 10, 16)
 	//roomNumberの上二桁だけ切り取り
 	buildingNumAndFloor := roomNum / 100
 	buildingAndFloor := strconv.FormatInt(buildingNumAndFloor, 10)
 	buildingAndFloor = buildingAndFloor + "%"
 
-	//db := infra.DBInit()
-
 	today := time.Now()
 	dayOfWeek := today.Weekday().String() // 曜日の取得
 	dayOfWeek = dayOfWeek[0:3]            //火曜なら "Tue"
-
-	// rooms := []model.Room{}
-	// db.Order("room_no").
-	// 	Select("room_no").
-	// 	Where("room_no LIKE ?", buildingAndFloor).
-	// 	Find(&rooms)
 
 	timer := []model.Timer{}
 	time := db.Order("time_no").

@@ -27,7 +27,8 @@ func main() {
 	}
 	reservation := router.Group("/reservation")
 	{
-		reservation.GET("/getRese", handler.ReservationInfo)
+		reservation.GET("/rese/:tower", handler.ReservationInfo)
+		reservation.POST("/rese", handler.InsertReseInfo)
 	}
 
 	room := router.Group("/room")
