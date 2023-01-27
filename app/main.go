@@ -17,18 +17,18 @@ func main() {
 
 	user := router.Group("/user")
 	{
-		user.GET("/get", handler.Getting)
-		user.PUT("/reg", handler.UserReg)
-		user.POST("/login", handler.UserLogin)
-		user.PUT("/update", handler.UpdateUser)
-		user.DELETE("/delete", handler.DeleteUser)
-		//user.POST("/validate", handler.SampleJwtValidation)
+		user.GET("get", handler.Getting)
+		user.PUT("reg", handler.UserReg)
+		user.POST("login", handler.UserLogin)
+		user.PUT("update", handler.UpdateUser)
+		user.DELETE("delete", handler.DeleteUser)
 
 	}
 	reservation := router.Group("/reservation")
 	{
-		reservation.GET("/rese/:tower", handler.ReservationInfo)
-		reservation.POST("/rese", handler.InsertReseInfo)
+		reservation.GET("rese/tower/:tower", handler.ReservationInfoTower)
+		reservation.GET("rese/room/:floorNo", handler.ReservationInfoRoom)
+		reservation.POST("rese", handler.InsertReseInfo)
 	}
 
 	room := router.Group("/room")

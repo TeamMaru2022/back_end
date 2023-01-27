@@ -10,6 +10,7 @@ type Room struct {
 	Outlet     string
 	Lan				 bool
 	IsDetected bool
+	LineBeacon bool
 }
 
 type RoomScan struct {
