@@ -28,7 +28,7 @@ func TeacherReg(c *gin.Context) {
 	password := teacherJson.Password
 	mail := teacherJson.TeacherMail
 	//パスワードハッシュ化
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		panic("failed to hash password")
 	}
@@ -36,7 +36,7 @@ func TeacherReg(c *gin.Context) {
 	fmt.Println(hashedPassword)
 	fmt.Println(string(hashedPassword))
 
-	teacher := model.Teacher{TeacherName: teacherName, PerNo: 1, Password: string(hashedPassword), Mail: mail}
+	teacher := model.Teacher{TeacherName: teacherName, Password: string(hashedPassword), Mail: mail}
 	tx := db.Session(&gorm.Session{SkipDefaultTransaction: true})
 
 	//ユーザ情報登録
@@ -48,7 +48,6 @@ func TeacherReg(c *gin.Context) {
 	tx.Commit()
 	fmt.Println("登録されたパスワード")
 	fmt.Println(teacher.Password)
-	fmt.Println(teacher.PerNo)
 	fmt.Println(teacher.TeacherName)
 	fmt.Println(teacher.ID)
 
@@ -73,28 +72,20 @@ func TeacherLogin(c *gin.Context) {
 	password := teacherLoginJson.Password
 	mail := teacherLoginJson.Mail
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	if err != nil {
-		panic("failed to hash password")
-	}
-	fmt.Println("以下ハッシュ化されたパスワード")
-	fmt.Println(string(hashedPassword))
-
 	teacher := model.Teacher{}
 	//password 取得
 	if err := db.Select("password", "id", "mail").Where("mail = ?", mail).First(&teacher).Error; err != nil {
 		//error handling
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": 0})
 		return
 	}
 
-	fmt.Printf("mail:%v, password:%v, id:%v", teacher.Mail, teacher.Password, teacher.ID)
-
 	//パスワードがあっているかの確認
-	if isAuthorized := bcrypt.CompareHashAndPassword([]byte(teacher.Password), []byte(password)); isAuthorized != nil {
+	isAuthorized := bcrypt.CompareHashAndPassword([]byte(teacher.Password), []byte(password));
+	if  isAuthorized != nil {
 
 		fmt.Println("不一致")
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "failed to login"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": 1})
 		return
 
 	}
@@ -105,7 +96,7 @@ func TeacherLogin(c *gin.Context) {
 		teacher.Mail,
 	)
 
-	c.JSON(http.StatusOK, gin.H{"message": "ログイン成功", "token": token})
+	c.JSON(http.StatusOK, gin.H{"message": "2", "token": token})
 }
 
 func SampleJwtValidation(c *gin.Context) {

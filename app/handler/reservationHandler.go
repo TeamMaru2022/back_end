@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"strconv"
+
 	// "github.com/Kantaro0829/go-gin-test/infra"
 	"github.com/Kantaro0829/go-gin-test/json"
 	"github.com/Kantaro0829/go-gin-test/model"
@@ -18,9 +20,14 @@ type reseClass struct {
 	Etime  string
 }
 
+// DBから取り出したデータを代入するstruct
+type resefloorClass struct {
+	RoomNo string
+}
+
 // 予約データを取得
-// n号館n階の予約状況だけ返す
-func ReservationInfo(c *gin.Context) {
+// n号館の予約状況だけ返す
+func ReservationInfoTower(c *gin.Context) {
 
 	towerNumStr := c.Param("tower")
 	tower := towerNumStr + "%"
@@ -51,6 +58,43 @@ func ReservationInfo(c *gin.Context) {
 
 }
 
+// 予約データを取得
+// n号館の予約状況だけ返す
+func ReservationInfoRoom(c *gin.Context) {
+
+	floorNumStr := c.Param("floorNo")
+	floorNum, _ := strconv.ParseInt(floorNumStr, 10, 16)
+	// roomNumberの上二桁だけ切り取り
+	buildingNumAndFloor := floorNum / 100
+	buildingAndFloor := strconv.FormatInt(buildingNumAndFloor, 10)
+	buildingAndFloor = buildingAndFloor + "%"
+
+	// 本日の日付を指定
+	today := (time.Now().Format("2006-01-02"))
+
+	// n号館n階の予約状況を変数に入れる
+	// 予約状況を入れる変数
+	class_rese := []model.Reservation{}
+	result := db.Table("reservations").
+		Select("room_no, s_time, e_time").
+		Where("room_no LIKE ? AND rese_date LIKE ?", buildingAndFloor, today).
+		Scan(&class_rese)
+
+	if result.Error != nil {
+		c.JSON(http.StatusConflict, gin.H{"status": 400})
+		return
+	}
+
+	// 予約がない場合は0を返すようにする
+	if len(class_rese) == 0 {
+		c.JSON(http.StatusOK, gin.H{"message": "0"})
+	} else {
+		json := createReservationFloorInfoJson(class_rese)
+		c.JSON(http.StatusOK, gin.H{"message": "1", "NormalInfo": json})
+	}
+
+}
+
 // reservationsテーブルに格納されている予約をJson形式に書き換えている
 func createReservationInfoJson(reseInfos []model.Reservation) []reseClass {
 	//各教室の予約状況を格納するJson配列を作成
@@ -65,6 +109,34 @@ func createReservationInfoJson(reseInfos []model.Reservation) []reseClass {
 			Stime:  v.STime,
 			Etime:  v.ETime,
 		})
+	}
+	// ↓件数が増えたらいるかも
+	fmt.Println("------------------出来上がったJson---------------------")
+	fmt.Println(reseInfo)
+	return reseInfo
+
+}
+
+// 今、予約があるか確かめる変数
+// RoomNo	をreturnする
+func createReservationFloorInfoJson(reseInfos []model.Reservation) []resefloorClass {
+	//各教室の予約状況を格納するJson配列を作成
+	reseInfo := []resefloorClass{}
+
+	// 現在時刻 : string
+	const TimeFormat = "15:04:05"
+	nowTime := time.Now().Format(TimeFormat)
+
+	for _, v := range reseInfos {
+		fmt.Printf("%v, %v, %v\n", v.RoomNo, v.STime, v.ETime)
+
+		if v.STime < nowTime && nowTime < v.ETime {
+			//各教室の予約状況を配列に格納する
+			reseInfo = append(reseInfo, resefloorClass{
+				RoomNo: v.RoomNo,
+			})
+		}
+
 	}
 	// ↓件数が増えたらいるかも
 	fmt.Println("------------------出来上がったJson---------------------")
@@ -114,6 +186,8 @@ func InsertReseInfo(c *gin.Context) {
 		}
 	}
 
+	// 予約時間に授業が入っている
+
 	// 予約表にデータを入れる
 	// 今日の日付のフォーマット作成
 	t := time.Now()
@@ -126,4 +200,6 @@ func InsertReseInfo(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "1"})
 	}
+
+
 }

@@ -25,7 +25,7 @@ func GetRoomInfo(c *gin.Context) {
 
 	roomNumStr := c.Param("roomNo")
 	roomNum, _ := strconv.ParseInt(roomNumStr, 10, 16)
-	//roomNumberの上二桁だけ切り取り
+	// roomNumberの上二桁だけ切り取り
 	buildingNumAndFloor := roomNum / 100
 	buildingAndFloor := strconv.FormatInt(buildingNumAndFloor, 10)
 	buildingAndFloor = buildingAndFloor + "%"
@@ -101,7 +101,7 @@ func createReservationJson() map[string]string {
 }
 
 func createDetectionJson(detectingInfo []model.RoomScan) interface{} {
-	detections := make(map[string]bool)
+	detections := make(map[string]string)
 
 	for _, v := range detectingInfo {
 		detections[v.RoomNo] = v.IsDetected

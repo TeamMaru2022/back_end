@@ -29,7 +29,7 @@ type SampleValidationJson struct {
 
 type SensorInfoJson struct {
 	RoomNo     string `json:"room_no"`
-	IsDetected bool   `json:"is_detected"`
+	IsDetected bool `json:"is_detected"`
 }
 
 type RegTeacher struct {
@@ -51,5 +51,5 @@ type JsonReservation struct {
 	EndT      string `json:"e_time"`
 	Purpose   string `json:" purpose "`
 	ReqDate   string `json:" request_date "`
-	ReqState  string    `json:"request_state"`
+	ReqState  string `json:"request_state"`
 }
