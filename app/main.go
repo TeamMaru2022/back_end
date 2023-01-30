@@ -51,6 +51,10 @@ func main() {
 	{
 		csv.POST("/csv", handler.ChangeCsv)
 	}
+
+	// Lineのセンサー
+	router.POST("/webhook", handler.LineBeacon)
+
 	router.Run(":3000")
 
 }

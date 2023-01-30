@@ -101,7 +101,7 @@ func createReservationJson() map[string]string {
 }
 
 func createDetectionJson(detectingInfo []model.RoomScan) interface{} {
-	detections := make(map[string]string)
+	detections := make(map[string]bool)
 
 	for _, v := range detectingInfo {
 		detections[v.RoomNo] = v.IsDetected
