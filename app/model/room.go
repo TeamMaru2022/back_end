@@ -16,4 +16,5 @@ type Room struct {
 type RoomScan struct {
 	RoomNo     string
 	IsDetected bool
+	LineBeacon bool
 }

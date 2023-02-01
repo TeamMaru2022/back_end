@@ -49,17 +49,23 @@ func UpdateDetectingInfo(c *gin.Context) {
 	fmt.Println(room.IsDetected)
 
 	// DBの値と教室の状態が同じかの判定
-	if isDetected == room.IsDetected {
-		tx.Rollback()
-		c.JSON(http.StatusOK, gin.H{"status": 200, "message": "以前の検知結果と同じです。"})
-		return
-	}
-
-	// DB値を更新
-	if result = db.Model(&room).Where("room_no = ?", roomNo).Update("is_detected", isDetected); result.Error != nil {
-		fmt.Println("データのの更新ができていません")
-		c.JSON(http.StatusServiceUnavailable, gin.H{"status": 503})
-		return
+	// room.IsDetected: true , isDetected: true  の場合 line_beacon, is_detected をfalse
+	// room.IsDetected: false, isDetected: true  の場合 is_detected をtrue
+	// room.IsDetected: true , isDetected: false の場合変更なし
+	if room.IsDetected && isDetected {
+		// DB値を変更
+		if result = db.Model(&room).Where("room_no = ?", roomNo).Updates(map[string]interface{}{"line_beacon": false, "is_detected": false}); result.Error != nil {
+			fmt.Println("LineBeacon, センサーのデータ更新ができていません")
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": 503})
+			return
+		}
+	} else if !room.IsDetected && isDetected {
+		// DB値を変更
+		if result = db.Model(&room).Where("room_no = ?", roomNo).Update("is_detected", true); result.Error != nil {
+			fmt.Println("LineBeaconのデータ更新ができていません")
+			c.JSON(http.StatusServiceUnavailable, gin.H{"status": 503})
+			return
+		}
 	}
 
 	tx.Commit()
@@ -118,7 +124,7 @@ func LineBeacon(c *gin.Context) {
 						}
 						// DB値を更新
 						if result = db.Model(&room).Where("room_no = ?", roomno[beaconhwid]).Update("line_beacon", true); result.Error != nil {
-							fmt.Println("データのの更新ができていません")
+							fmt.Println("データの更新ができていません")
 							c.JSON(http.StatusServiceUnavailable, gin.H{"status": 503})
 							return
 						}
