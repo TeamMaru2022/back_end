@@ -27,7 +27,6 @@ func main() {
 	reservation := router.Group("/reservation")
 	{
 		reservation.GET("rese/tower/:tower", handler.ReservationInfoTower)
-		reservation.GET("rese/room/:floorNo", handler.ReservationInfoRoom)
 		reservation.POST("rese", handler.InsertReseInfo)
 	}
 

@@ -179,14 +179,14 @@ func InsertReseInfo(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"status": 400, "message": "予約情報、取得失敗"})
 		return
 	}
+
+	// 予約時間に授業が入っている
 	for _, v := range reseI {
 		if (v.STime[:5] <= endTime && endTime < v.ETime) || (v.STime[:5] < startTime && endTime < v.ETime) || (v.STime[:5] < startTime && startTime < v.ETime) || (startTime < v.STime[:5] && v.ETime < endTime) {
 			c.JSON(http.StatusOK, gin.H{"message": "0", "roomNO": v.RoomNo, "startTime": v.STime, "endTime": v.ETime})
 			return
 		}
 	}
-
-	// 予約時間に授業が入っている
 
 	// 予約表にデータを入れる
 	// 今日の日付のフォーマット作成
@@ -200,6 +200,5 @@ func InsertReseInfo(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"message": "1"})
 	}
-
 
 }

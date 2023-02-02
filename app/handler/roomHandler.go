@@ -30,10 +30,14 @@ func GetRoomInfo(c *gin.Context) {
 	buildingAndFloor := strconv.FormatInt(buildingNumAndFloor, 10)
 	buildingAndFloor = buildingAndFloor + "%"
 
-	today := time.Now()
-	dayOfWeek := today.Weekday().String() // 曜日の取得
-	dayOfWeek = dayOfWeek[0:3]            //火曜なら "Tue"
+	today := (time.Now().Format("2006-01-02")) //本日の日付を取得
+	dayOfWeek := time.Now().Weekday().String() // 曜日の取得
+	fmt.Println(dayOfWeek)
+	dayOfWeek = dayOfWeek[0:3] //火曜なら "Tue"
 
+	fmt.Println(dayOfWeek)
+
+	// 今何限目を取得
 	timer := []model.Timer{}
 	time := db.Order("time_no").
 		Select("time_no, s_time, e_time").
@@ -45,9 +49,8 @@ func GetRoomInfo(c *gin.Context) {
 		return
 	}
 
+	// 通常授業の情報を取得
 	roomResults := []model.RoomResult{}
-	roomScan := []model.RoomScan{}
-
 	result := db.Order("timetables.room_no, timetables.time_no").Table("timetables").
 		Select("timetables.room_no, timetables.time_no, timetables.subject_name").
 		Where("timetables.room_no LIKE ? AND timetables.youbi = ?", buildingAndFloor, dayOfWeek).
@@ -58,6 +61,8 @@ func GetRoomInfo(c *gin.Context) {
 		return
 	}
 
+	// センサー情報取得
+	roomScan := []model.RoomScan{}
 	detectingResult := db.Order("room_no").Table("rooms").
 		Select("room_no, is_detected").
 		Where("room_no LIKE ?", buildingAndFloor).
@@ -68,9 +73,21 @@ func GetRoomInfo(c *gin.Context) {
 		return
 	}
 
+	// 予約状況を取得
+	class_rese := []model.Reservation{}
+	resersult := db.Order("room_no").Table("reservations").
+		Select("room_no, s_time, e_time").
+		Where("room_no LIKE ? AND rese_date LIKE ?", buildingAndFloor, today).
+		Scan(&class_rese)
+
+	if resersult.Error != nil {
+		c.JSON(http.StatusConflict, gin.H{"status": 400})
+		return
+	}
+
 	timerInfo := createTimerInfoJson(timer)
 	roomInfo := createRoomInfoJson(roomResults)
-	reservationInfo := createReservationJson()
+	reservationInfo := createReservationJson(class_rese)
 	detectingInfo := createDetectionJson(roomScan)
 	response := AllInfo{TimerInfo: timerInfo, NormalInfo: roomInfo, ReservationInfo: reservationInfo, DetectingInfo: detectingInfo}
 	c.JSON(http.StatusOK, response)
@@ -79,6 +96,11 @@ func GetRoomInfo(c *gin.Context) {
 type Class struct {
 	TimeNo      string
 	SubjectName string
+}
+
+type Rese struct {
+	STime string
+	ETime string
 }
 
 type Timer struct {
@@ -90,21 +112,21 @@ type Timer struct {
 type AllInfo struct {
 	TimerInfo       int
 	NormalInfo      map[string][]Class
-	ReservationInfo map[string]string
+	ReservationInfo map[string][]Rese
 	DetectingInfo   interface{}
-}
-
-func createReservationJson() map[string]string {
-	reservationInfos := make(map[string]string)
-	reservationInfos["reservation"] = "予約"
-	return reservationInfos
 }
 
 func createDetectionJson(detectingInfo []model.RoomScan) interface{} {
 	detections := make(map[string]bool)
 
 	for _, v := range detectingInfo {
-		detections[v.RoomNo] = v.IsDetected
+		if v.IsDetected && v.LineBeacon {
+			// 人感センサーとBeaconが true なら教室に誰かいる
+			detections[v.RoomNo] = true
+		} else {
+			// 人感センサーかBeaconが false なら教室に誰もいない
+			detections[v.RoomNo] = false
+		}
 	}
 	fmt.Println("\n\n-----------センサー情報-----------")
 	fmt.Println(detections)
@@ -113,6 +135,39 @@ func createDetectionJson(detectingInfo []model.RoomScan) interface{} {
 	return detections
 }
 
+// 教室の予約状況を送る
+func createReservationJson(reservationJsons []model.Reservation) map[string][]Rese {
+	var currentRoomNo string
+	eachReservationInfo := make(map[string][]Rese)
+	reservationJson := []Rese{}
+
+	for i, v := range reservationJsons {
+		if i == 0 {
+			currentRoomNo = v.RoomNo
+		}
+
+		if currentRoomNo != v.RoomNo {
+			//以前の教室番号と違う教室番号の場合新しい連想配列を作る
+			eachReservationInfo[currentRoomNo] = reservationJson
+			//各教室1~5限情報をを格納する配列の初期化
+			reservationJson = []Rese{}
+			currentRoomNo = v.RoomNo
+		}
+
+		//各教室の1〜5限目の情報を格納する配列に値を入れる
+		reservationJson = append(reservationJson, Rese{
+			STime: v.STime,
+			ETime: v.ETime,
+		})
+	}
+
+	//最後だけfor文が回らないので
+	eachReservationInfo[currentRoomNo] = reservationJson
+
+	return eachReservationInfo
+}
+
+// 教室の授業予定を送る
 func createRoomInfoJson(roomInfos []model.RoomResult) map[string][]Class {
 	//各教室の状況を格納するJson配列を作成する
 	var currentRoomNo string                  //同じ教室番号を配列に分割するために判断する変数
